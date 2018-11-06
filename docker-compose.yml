@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: rooming_user
+      POSTGRES_PASSWORD: rooming_password
+      POSTGRES_DB: rooming
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432"
+  web:
+    build: rooming
+    restart: always
+    volumes:
+      - ./rooming:/code
+    ports:
+      - "8000"
+    depends_on:
+      - db
+    env_file: ./rooming/.env
+volumes:
+  postgres_data:
