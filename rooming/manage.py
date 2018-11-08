@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 import sys
 
 if __name__ == '__main__':
+    if os.getenv('ENVIRON', 'develop') == 'develop':
+        dotenv_path = join(dirname(__file__), '.env')
+        load_dotenv(dotenv_path)
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rooming.settings')
     try:
         from django.core.management import execute_from_command_line

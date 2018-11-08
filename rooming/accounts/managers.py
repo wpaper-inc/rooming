@@ -6,6 +6,8 @@ from livefield import LiveManager
 class AccountManager(LiveManager):
     pass
 
+class StoreManager(LiveManager):
+    pass
 
 class MemberManager(LiveManager, BaseUserManager):
     use_in_migrations = True
