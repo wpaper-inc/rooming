@@ -1,11 +1,12 @@
 import uuid
+import functools
 
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 
 from lib.models import BaseModelMixin
-from lib.cipher import access_secret
+from lib.cipher import generate_secret
 
 from . import managers
 
@@ -16,12 +17,12 @@ class Account(BaseModelMixin):
                                   unique=True,
                                   editable=False)
     name = models.CharField(max_length=100)
-    access_key_id = models.CharField(max_length=32,
-                                     default=access_secret,
+    public_key = models.CharField(max_length=35,
+                                     default=functools.partial(generate_secret, 'pb'),
                                      unique=True,
                                      editable=False)
-    access_secret_key = models.CharField(max_length=32,
-                                         default=access_secret,
+    secret_key = models.CharField(max_length=35,
+                                         default=functools.partial(generate_secret, 'sk'),
                                          unique=True,
                                          editable=False)
 
@@ -35,11 +36,37 @@ class Account(BaseModelMixin):
         indexes = [
             models.Index(fields=['account_id']),
             models.Index(fields=['name']),
-            models.Index(fields=['access_key_id']),
+            models.Index(fields=['public_key']),
+            models.Index(fields=['secret_key']),
         ]
 
     def __str__(self):
         return 'Account(name={})'.format(self.name)
+
+
+class Store(BaseModelMixin):
+    '''店舗'''
+    store_id = models.UUIDField(default=uuid.uuid4,
+                                unique=True,
+                                editable=False)
+    account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, unique=True)
+
+    objects = managers.StoreManager()
+    all_objects = managers.StoreManager(include_soft_deleted=True)
+
+    class Meta:
+        db_table = 'store'
+        verbose_name = 'Store/店舗'
+        verbose_name_plural = 'Stores/店舗'
+        indexes = [
+            models.Index(fields=['store_id']),
+            models.Index(fields=['account']),
+            models.Index(fields=['name']),
+        ]
+
+    def __str__(self):
+        return 'Store(name={})'.format(self.name)
 
 
 class Member(BaseModelMixin, AbstractBaseUser, PermissionsMixin):
@@ -53,6 +80,7 @@ class Member(BaseModelMixin, AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
+    store = models.ForeignKey('accounts.Store', null=True, default=None, on_delete=models.CASCADE)
 
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'

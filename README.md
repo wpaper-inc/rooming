@@ -1,6 +1,8 @@
 ROOMING
 =======
 
+<img src="https://s3-ap-northeast-1.amazonaws.com/python-distribution/rooming-logo.png" width=300>
+
 ### 1. Run django project container with docker compose
 
 This project has developed on docker container, python and potgres.

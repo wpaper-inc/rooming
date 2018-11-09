@@ -1,0 +1,10 @@
+ENVIRON=develop
+SECRET_KEY=8#=g5csvps@+&wr15ombq9w4^113to3)ke(yl=7-0p_%g-#b%l
+DB_NAME=rooming
+DB_USER=rooming_user
+DB_PASSWORD=rooming_password
+DB_HOST=db
+DB_PORT=5432
+SUPER_MEMBER_EMAIL=webmaster@wpaper-inc.com
+SUPER_MEMBER_PASSWORD=321496
+GS_BUCKET_NAME=

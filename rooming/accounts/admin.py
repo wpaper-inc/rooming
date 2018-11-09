@@ -6,9 +6,19 @@ from . import models
 class AccountAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'account_id',
-        'name', 'access_key_id', 'access_secret_key',
+        'name', 'public_key', 'secret_key',
     )
 
+class StoreAdmin(admin.ModelAdmin):
+    def account_name(self, obj):
+        if obj.account:
+            return obj.account.name
+        return ''
+    account_name.description = 'account'
+    list_display = (
+        'id', 'store_id',
+        'name', 'account_name',
+    )
 
 class MemberAdmin(admin.ModelAdmin):
     def account_name(self, obj):
@@ -28,4 +38,5 @@ class MemberAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.Account, AccountAdmin)
+admin.site.register(models.Store, StoreAdmin)
 admin.site.register(models.Member, MemberAdmin)

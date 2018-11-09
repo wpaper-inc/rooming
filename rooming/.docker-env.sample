@@ -1,8 +1,10 @@
+ENVIRON=develop
 SECRET_KEY=
-DB_HOST=db
+DB_NAME=rooming
 DB_USER=rooming_user
 DB_PASSWORD=rooming_password
-DB_DATABASE=rooming
+DB_HOST=db
 DB_PORT=5432
-SUPER_MEMBER_EMAIL=info@rmng.jp
+SUPER_MEMBER_EMAIL=webmaster@rmng.jp
 SUPER_MEMBER_PASSWORD=wp1234
+GS_BUCKET_NAME=
