@@ -1,6 +1,17 @@
 version: '3'
 
 services:
+  static:
+    image: minio/minio
+    ports:
+      - "32761:9000"
+    volumes:
+      - ./data/minio/data:/export
+      - ./data/minio/config:/root/.minio
+    environment:
+      MINIO_ACCESS_KEY: rooming_user
+      MINIO_SECRET_KEY: rooming_password
+    command: server /export
   db:
     image: postgres
     environment:
@@ -19,7 +30,8 @@ services:
     ports:
       - "8000"
     depends_on:
+      - static
       - db
-    env_file: ./rooming/.env
+    env_file: ./rooming/.docker-env
 volumes:
   postgres_data:

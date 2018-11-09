@@ -14,6 +14,7 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENVIRON = os.getenv('ENVIRON', 'local')
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '(#vri4(6ej=of0&8uiiv!oo^*8c#rm6c=hy2(0os9-nnol=)hm'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = ENVIRON == 'local' or ENVIRON == 'develop'
 
 ALLOWED_HOSTS = []
 
@@ -83,6 +84,26 @@ DATABASES = {
         'PORT': 5432,
     }
 }
+
+# Storage
+if ENVIRON == 'develop':
+    # Dockerでの開発中は、無料S3互換ストレージ"MINIO"を使用する
+    INSTALLED_APPS += ['minio_storage']
+    DEFAULT_FILE_STORAGE = 'minio_storage.storage.MinioMediaStorage'
+    STATICFILES_STORAGE = 'minio_storage.storage.MinioStaticStorage'
+    MINIO_STORAGE_ENDPOINT = 'static:32761'
+    MINIO_STORAGE_ACCESS_KEY = 'rooming_user'
+    MINIO_STORAGE_SECRET_KEY = 'rooming_password'
+    MINIO_STORAGE_USE_HTTPS = False
+    MINIO_STORAGE_STATIC_BUCKET_NAME = 'rooming'
+    MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
+    MINIO_STORAGE_STATIC_URL = 'http://localhost:9000/rooming'
+elif ENVIRON == 'staging' or ENVIRON == 'master':
+    # 検証・本番環境ではGoogle Cloud Storageを使用する
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
+    GS_PROJECT_ID = 'rooming'
 
 
 # Password validation
