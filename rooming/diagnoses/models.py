@@ -62,7 +62,7 @@ class QuestionAnswer(BaseModelMixin):
         verbose_name_plural = 'QuestionAnswers/質問回答回答'
         unique_together = ('question', 'answer', 'live')
         indexes = [
-            models.Index(fields=['question_id']),
-            models.Index(fields=['answer_id']),
-            models.Index(fields=['question_id', 'answer_id']),
+            models.Index(fields=['question']),
+            models.Index(fields=['answer']),
+            models.Index(fields=['question', 'answer']),
         ]

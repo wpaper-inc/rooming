@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'storages',
 
     'accounts',
+    'chatbot',
+    'diagnoses',
+    'products',
     'users',
 ]
 
