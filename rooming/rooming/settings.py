@@ -21,12 +21,13 @@ ENVIRON = os.getenv('ENVIRON', 'local')
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '(#vri4(6ej=of0&8uiiv!oo^*8c#rm6c=hy2(0os9-nnol=)hm'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = ENVIRON == 'local' or ENVIRON == 'develop'
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,6 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'django_filters',
+    'django_nose',
+    'django_extensions',
+    'storages',
+
+    'accounts',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +91,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': 5432,
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
@@ -91,7 +101,7 @@ if ENVIRON == 'develop':
     INSTALLED_APPS += ['minio_storage']
     DEFAULT_FILE_STORAGE = 'minio_storage.storage.MinioMediaStorage'
     STATICFILES_STORAGE = 'minio_storage.storage.MinioStaticStorage'
-    MINIO_STORAGE_ENDPOINT = 'static:32761'
+    MINIO_STORAGE_ENDPOINT = 'static:9000'
     MINIO_STORAGE_ACCESS_KEY = 'rooming_user'
     MINIO_STORAGE_SECRET_KEY = 'rooming_password'
     MINIO_STORAGE_USE_HTTPS = False
@@ -109,6 +119,7 @@ elif ENVIRON == 'staging' or ENVIRON == 'master':
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 
+AUTH_USER_MODEL = 'accounts.Member'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -129,15 +140,14 @@ AUTH_MODEL = 'accounts.models.Member'
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'ja-jp'
+TIME_ZONE = 'Asia/Tokyo'
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
+
+# Testing
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 
 # Static files (CSS, JavaScript, Images)
