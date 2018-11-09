@@ -9,5 +9,6 @@ django-nose==1.4.6
 django-storages==1.7.1
 djangorestframework==3.8.2
 gunicorn==19.9.0
+line-bot-sdk==1.8.0
 psycopg2-binary==2.7.5
 python-dotenv==0.9.1

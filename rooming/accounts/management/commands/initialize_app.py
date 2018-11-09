@@ -36,3 +36,6 @@ class Command(BaseCommand):
         if not super_member.store:
             super_member.store = store
             super_member.save()
+
+        # 商品を追加
+        # 診断を追加
