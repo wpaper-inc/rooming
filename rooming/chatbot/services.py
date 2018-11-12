@@ -40,10 +40,9 @@ class LineChatbotService:
         self.mock = False
         signature = request.META.get('HTTP_X_LINE_SIGNATURE')
         body = json.dumps(request.data)
-        try:
-            self.handler.handle(body, signature)
-        except InvalidSignatureError:
-            return
+        print(signature)
+        print(body)
+        self.handler.handle(body, signature)
 
     def reply_messages(self, event, messages):
         if self.mock:
