@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/
 import os
 
 import newrelic.agent
-newrelic.agent.initialize('newrelic.ini')
+newrelic.agent.initialize('rooming/newrelic.ini')
 
 from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rooming.settings')
