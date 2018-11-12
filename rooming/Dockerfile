@@ -8,3 +8,4 @@ ADD . /code/
 
 RUN ["chmod", "+x", "/code/docker-entrypoint.sh"]
 ENTRYPOINT ["sh", "/code/docker-entrypoint.sh"]
+EXPOSE 8000
