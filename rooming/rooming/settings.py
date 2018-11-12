@@ -112,11 +112,11 @@ if ENVIRON == 'develop':
     MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
     MINIO_STORAGE_STATIC_URL = 'http://localhost:9000/rooming'
 elif ENVIRON == 'staging' or ENVIRON == 'master':
-    # 検証・本番環境ではGoogle Cloud Storageを使用する
-    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
-    GS_PROJECT_ID = 'rooming'
+    # 検証・本番環境ではS3を使用する
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_STORAGE_BUCKET_NAME = 'rooming'
+    AWS_AUTO_CREATE_BUCKET = True
 
 
 # Password validation

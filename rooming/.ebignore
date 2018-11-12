@@ -1,0 +1,10 @@
+.env
+.venv
+.env.sample
+.docker-env
+.docker-env.sample
+static
+__pycache__
+.py[co]
+requirements.lock
+static
