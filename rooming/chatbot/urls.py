@@ -5,5 +5,5 @@ from . import views
 app_name = 'chatbot'
 
 urlpatterns = [
-    path('line/webhook', views.LineChatbotView.as_view(), name='line'),
+    path('line/webhook', views.line_chatbot, name='line'),
 ]

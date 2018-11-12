@@ -19,6 +19,8 @@ class LineChatbotService:
     LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 
     def __init__(self):
+        print(self.LINE_CHANNEL_ACCESS_TOKEN)
+        print(self.LINE_CHANNEL_SECRET)
         self.api = LineBotApi(self.LINE_CHANNEL_ACCESS_TOKEN)
         self.handler = WebhookHandler(self.LINE_CHANNEL_SECRET)
         self.mock = False
@@ -39,9 +41,7 @@ class LineChatbotService:
     def callback(self, request):
         self.mock = False
         signature = request.META.get('HTTP_X_LINE_SIGNATURE')
-        body = json.dumps(request.data)
-        print(signature)
-        print(body)
+        body = request.body.decode('utf-8')
         self.handler.handle(body, signature)
 
     def reply_messages(self, event, messages):
