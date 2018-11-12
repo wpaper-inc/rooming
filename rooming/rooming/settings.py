@@ -117,7 +117,7 @@ elif ENVIRON == 'staging' or ENVIRON == 'master':
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = 'rooming'
+    AWS_STORAGE_BUCKET_NAME = 'rmng'
     AWS_AUTO_CREATE_BUCKET = True
 
 
