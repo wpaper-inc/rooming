@@ -19,8 +19,6 @@ class LineChatbotService:
     LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 
     def __init__(self):
-        print(self.LINE_CHANNEL_ACCESS_TOKEN)
-        print(self.LINE_CHANNEL_SECRET)
         self.api = LineBotApi(self.LINE_CHANNEL_ACCESS_TOKEN)
         self.handler = WebhookHandler(self.LINE_CHANNEL_SECRET)
         self.mock = False
