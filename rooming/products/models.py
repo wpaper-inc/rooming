@@ -21,8 +21,9 @@ class Product(BaseModelMixin):
         size=20
     )
     description = models.TextField(null=True, default=None, blank=True)
-    price = models.IntegerField()
-    release_date = models.DateField(null=True, default=None, blank=True)
+    detail_url = models.TextField(null=True, default=None, blank=True)
+    price = models.IntegerField(null=True, default=None, blank=True)
+    release_date = models.URLField(null=True, default=None, blank=True)
     model = models.CharField(max_length=100,
                              null=True,
                              default=None,

@@ -7,7 +7,7 @@ from . import services
 
 
 @csrf_exempt
-def line_chatbot(request):
+def line_chatbot(request, account_id):
     service = services.LineChatbotService()
     service.callback(request)
     return HttpResponse(json.dumps({}), content_type='application/json', status=200)
