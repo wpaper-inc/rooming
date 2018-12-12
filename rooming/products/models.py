@@ -17,12 +17,13 @@ class Product(BaseModelMixin):
                                 on_delete=models.CASCADE)
     title = models.CharField(max_length=300)
     images = ArrayField(
-        models.URLField(),
+        models.URLField(max_length=1024),
         size=20
     )
     description = models.TextField(null=True, default=None, blank=True)
     detail_url = models.TextField(null=True, default=None, blank=True)
     price = models.IntegerField(null=True, default=None, blank=True)
+    tax_flag = models.BooleanField(default=False) # 税込みかどうか
     release_date = models.URLField(null=True, default=None, blank=True)
     model = models.CharField(max_length=100,
                              null=True,

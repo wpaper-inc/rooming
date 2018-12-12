@@ -44,6 +44,34 @@ class Account(BaseModelMixin):
         return 'Account(name={})'.format(self.name)
 
 
+class TrackingURL(BaseModelMixin):
+    '''外部URLへアクセスしたことを検知する短縮URL'''
+    tracking_url_id = models.UUIDField(default=uuid.uuid4,
+                                unique=True,
+                                editable=False)
+    account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
+    url = models.URLField(max_length=1024, unique=False)
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    click_count = models.IntegerField(default=0)
+
+    objects = managers.AccountManager()
+    all_objects = managers.AccountManager(include_soft_deleted=True)
+
+    class Meta:
+        db_table = 'tracking_url'
+        verbose_name = 'TrackingURL/短縮URL'
+        verbose_name_plural = 'TrackingURLs/短縮URL'
+        unique_together = ('account', 'user', 'url', 'live')
+        indexes = [
+            models.Index(fields=['tracking_url_id']),
+            models.Index(fields=['account']),
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return 'TrackingURL(id={})'.format(self.tracking_url_id)
+
+
 class Store(BaseModelMixin):
     '''店舗'''
     store_id = models.UUIDField(default=uuid.uuid4,

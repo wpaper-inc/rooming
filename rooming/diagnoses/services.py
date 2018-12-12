@@ -1,11 +1,21 @@
 import io
 import xlrd
 
+from django.db import IntegrityError
+
 from products.models import Product
 from . import models
 
 
 class DiagnosisService:
+    DIAGNOSES_SHEET = 0
+    PRODUCTS_SHEET = 1
+    TYPES = {
+        'カルーセル': models.Question.MESSAGE_TYPE_CAROUSEL,
+        'クイックリプライ': models.Question.MESSAGE_TYPE_QUICK_REPLY,
+        'ボタン': models.Question.MESSAGE_TYPE_BUTTON,
+    }
+
     def __init__(self, account, *args, **kwargs):
         self.account = account
 
@@ -15,12 +25,9 @@ class DiagnosisService:
         return answers
 
     def get_next_question(self, answer_phase):
-        try:
-            qa = models.QuestionAnswer.objects.get(answer__title=answer_phase,
-                                                   account=self.account)
-        except models.QuestionAnswer.DoesNotExist:
-            return None
-        return qa.next_question
+        qa = models.QuestionAnswer.objects.filter(answer__title=answer_phase,
+                                               account=self.account).first()
+        return qa and qa.next_question
 
     def get_product(self, answer_phase):
         try:
@@ -29,14 +36,17 @@ class DiagnosisService:
             return None
         return qap.product
 
-    # def get_next_question(self, question, answer):
-    #     try:
-    #         qa = models.QuestionAnswers.objects.get(question=question,
-    #                                                 answer=answer,
-    #                                                 account=self.account)
-    #     except models.QuestionAnswer.DoesNotExist:
-    #         return None
-    #     return qa.next_question
+    def get_next_question_or_product(self, answer_id):
+        answer = models.Answer.objects.get(answer_id=answer_id)
+        qa = models.QuestionAnswer.objects.filter(answer=answer, account=self.account).first()
+        if qa and qa.next_question:
+            return qa.next_question, None
+
+        qap = models.QuestionAnswerProduct.objects.filter(answer=answer).first()
+        if qap and qap.product:
+            return None, qap.product
+
+        return None, None
 
     def get_suggested_product(self, question, answer):
         try:
@@ -49,99 +59,117 @@ class DiagnosisService:
             return None
         return qap.product
 
+    def get_message_type(self, type_str):
+        return self.TYPES[type_str]
+
     def import_excel(self, filepath):
         # excep_file = io.TextIOWrapper(file)
         book = xlrd.open_workbook(filepath)
 
         # 質問一覧を作成
-        question_sheet = book.sheet_by_index(0)
+        question_sheet = book.sheet_by_index(self.DIAGNOSES_SHEET)
+        products_sheet = book.sheet_by_index(self.PRODUCTS_SHEET)
+
+        diagnoses = {}
+
+        # 商品一覧を作成
+        for rx in range(1, products_sheet.nrows):
+            product_number = products_sheet.cell_value(rowx=rx, colx=0)
+            removal_words = ['＋', '税', '¥', ',']
+            price = products_sheet.cell_value(rowx=rx, colx=5)
+            for w in removal_words:
+                price = price.replace(w, '')
+            price = int(price)
+            product, created = Product.objects.get_or_create(
+                account=self.account,
+                detail_url=products_sheet.cell_value(rowx=rx, colx=1),
+                title=products_sheet.cell_value(rowx=rx, colx=3),
+                images=[products_sheet.cell_value(rowx=rx, colx=4)],
+                price=price,
+                tax_flag=False, # 税抜き
+                model=products_sheet.cell_value(rowx=rx, colx=6),
+                description=products_sheet.cell_value(rowx=rx, colx=7),
+                external_id=product_number,
+            )
+            diagnoses[product_number] = product
+
+        # 質問:回答のフォーマットに変換する
         first_question = None
-        questions = {}
+        current_question_id = None
+        answers = []
+
         for rx in range(1, question_sheet.nrows):
+            # 質問を取得
             question_id = question_sheet.cell_value(rowx=rx, colx=0)
-            title = question_sheet.cell_value(rowx=rx, colx=1)
-            image_url = question_sheet.cell_value(rowx=rx, colx=2)
-            is_first_question = question_sheet.cell_value(rowx=rx, colx=3)
-            question, created = models.Question.objects.get_or_create(
-                title=title,
-                image=image_url,
-                account=self.account,
-            )
-            if is_first_question == 'y':
-                first_question = question
-            questions[title] = question
+            question_type = question_sheet.cell_value(rowx=rx, colx=1)
 
-        # 回答一覧を作成
-        answer_sheet = book.sheet_by_index(1)
-        answers = {}
-        for rx in range(1, answer_sheet.nrows):
-            answer_id = answer_sheet.cell_value(rowx=rx, colx=0)
-            title = answer_sheet.cell_value(rowx=rx, colx=1)
-            image_url = None
-            answer, created = models.Answer.objects.get_or_create(
-                title=title,
-                image=image_url,
-                account=self.account,
-            )
-            answers[title] = answer
+            # 質問/回答の場合
+            if question_type != '結果':
+                # 新しい質問の場合
+                if question_id != '':
+                    # 質問の作成
+                    current_question_id = question_id
+                    message_type = self.get_message_type(question_type)
+                    question, created = models.Question.objects.get_or_create(
+                        title=question_sheet.cell_value(rowx=rx, colx=2),
+                        image=None,
+                        account=self.account,
+                        message_type=message_type,
+                        note1=question_id
+                    )
+                    diagnoses[question_id] = question
+                    if not first_question:
+                        first_question = question
 
-        # 商品一覧を取得
-        product_sheet = book.sheet_by_index(2)
-        products = {}
-        for rx in range(1, product_sheet.nrows):
-            product_id = product_sheet.cell_value(rowx=rx, colx=2)
-            try:
-                product = Product.objects.get(external_id=product_id)
-            except Product.DoesNotExist:
-                name = product_sheet.cell_value(rowx=rx, colx=1)
-                image = product_sheet.cell_value(rowx=rx, colx=3)
-                description = product_sheet.cell_value(rowx=rx, colx=4)
-                detail_url = product_sheet.cell_value(rowx=rx, colx=5)
-                product = Product.objects.create(
-                    title=name,
-                    description=description,
-                    images=[image],
-                    detail_url=detail_url,
-                    external_id=product_id,
+                # 回答の作成
+                next_diagnosis = question_sheet.cell_value(rowx=rx, colx=4)
+                answer, created = models.Answer.objects.get_or_create(
+                    title=question_sheet.cell_value(rowx=rx, colx=3),
+                    image=None,
                     account=self.account,
+                    note1=current_question_id
                 )
-            products[product_id] = product
+                answers.append(dict(
+                    obj=answer,
+                    question_number=current_question_id,
+                    next_number=question_sheet.cell_value(rowx=rx, colx=4),
+                ))
 
-        # 質問回答関連を作成
-        qa_sheet = book.sheet_by_index(3)
-        for rx in range(1, qa_sheet.nrows):
-            question_idx = qa_sheet.cell_value(rowx=rx, colx=0)
-            question = questions[question_idx]
-            answer_idx = qa_sheet.cell_value(rowx=rx, colx=1)
-            answer = answers[answer_idx]
-            next_q_idx = qa_sheet.cell_value(rowx=rx, colx=2)
-            next_question = questions.get(question_idx, None)
-            product_id = qa_sheet.cell_value(rowx=rx, colx=4)
-            product = products.get(product_id, None)
-            models.QuestionAnswer.objects.get_or_create(
-                question=question,
-                answer=answer,
-                next_question=next_question,
-                account=self.account,
-            )
-            if product:
-                models.QuestionAnswerProduct.objects.get_or_create(
+        for answer in answers:
+            question_number = answer['question_number']
+            next_number = answer['next_number']
+            answer = answer['obj']
+
+            question = diagnoses[question_number]
+            q_or_p = diagnoses[next_number]
+
+            if type(q_or_p) == models.Question:
+                qa, created = models.QuestionAnswer.objects.get_or_create(
                     question=question,
                     answer=answer,
-                    product=product,
+                    next_question=q_or_p,
+                    account=self.account,
                 )
+            else:
+                try:
+                    qa, created = models.QuestionAnswer.objects.get_or_create(
+                        question=question,
+                        answer=answer,
+                        next_question=None,
+                        account=self.account,
+                    )
+                    qap, created = models.QuestionAnswerProduct.objects.get_or_create(
+                        question=question,
+                        answer=answer,
+                        product=q_or_p,
+                    )
+                except IntegrityError:
+                    print(question.title)
+                    print(answer.title)
 
-        # 診断を作成
-        diagnosis_sheet = book.sheet_by_index(4)
-        phase = product_sheet.cell_value(rowx=1, colx=0)
-        messages = []
-        for i in range(1, 6):
-            message = product_sheet.cell_value(rowx=1, colx=i)
-            if message:
-                messages.append(message)
         models.Diagnosis.objects.get_or_create(
-            phase=phase,
-            preface=messages,
+            phase='診断',
+            preface=[],
             first_question=first_question,
-            account=self.account,
+            account=self.account
         )

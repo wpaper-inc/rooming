@@ -12,7 +12,7 @@ class User(BaseModelMixin):
     user_id = models.UUIDField(default=uuid.uuid4,
                                unique=True,
                                editable=False)
-    line_user_id = models.UUIDField(unique=True, editable=False)
+    line_user_id = models.CharField(max_length=200, null=True, default=None)
     full_name = models.CharField(max_length=150, null=True, default=None)
 
     objects = managers.UserManager()
@@ -25,6 +25,35 @@ class User(BaseModelMixin):
         indexes = [
             models.Index(fields=['user_id']),
             models.Index(fields=['line_user_id']),
+        ]
+
+
+class Activity(BaseModelMixin):
+    '''ユーザーのアクセスログ'''
+    activity_id = models.UUIDField(default=uuid.uuid4,
+                                   unique=True,
+                                   editable=False)
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    path = models.CharField(max_length=1024)
+    params = JSONField(max_length=1024)
+    action = models.CharField(max_length=100, null=True, default=None, blank=True)
+    action_id = models.CharField(max_length=256, null=True, default=None, blank=True)
+    account = models.ForeignKey('accounts.Account',
+                                null=True,
+                                default=None,
+                                on_delete=models.CASCADE)
+
+    objects = managers.ActivityManager()
+    all_objects = managers.ActivityManager(include_soft_deleted=True)
+
+    class Meta:
+        db_table = 'activity'
+        verbose_name = 'Activity/ユーザーアクセスログ'
+        verbose_name_plural = 'Activities/ユーザーアクセスログ'
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['path']),
+            models.Index(fields=['user', 'path']),
         ]
 
 

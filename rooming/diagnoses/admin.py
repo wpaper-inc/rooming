@@ -10,7 +10,8 @@ class DiagnosisAdmin(admin.ModelAdmin):
         return ''
     account_name.description = 'account'
     list_display = (
-        'diagnosis_id', 'phase',
+        'diagnosis_id',
+        'phase1', 'phase2', 'phase3',
         'preface', 'first_question',
         'account_name',
     )

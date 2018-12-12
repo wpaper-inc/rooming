@@ -13,7 +13,9 @@ class Diagnosis(BaseModelMixin):
     diagnosis_id = models.UUIDField(default=uuid.uuid4,
                                    unique=True,
                                    editable=False)
-    phase = models.CharField(max_length=2000)
+    phase1 = models.CharField(max_length=2000)
+    phase2 = models.CharField(max_length=2000, null=True, default=None, blank=True)
+    phase3 = models.CharField(max_length=2000, null=True, default=None, blank=True)
     preface = fields.ArrayField(models.CharField(max_length=2000), size=8)
     first_question = models.ForeignKey('diagnoses.Question', on_delete=models.CASCADE)
     account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
@@ -27,21 +29,34 @@ class Diagnosis(BaseModelMixin):
         verbose_name_plural = 'Diagnoses/診断'
         indexes = [
             models.Index(fields=['diagnosis_id']),
-            models.Index(fields=['phase']),
+            models.Index(fields=['phase1']),
+            models.Index(fields=['phase2']),
+            models.Index(fields=['phase3']),
             models.Index(fields=['first_question']),
             models.Index(fields=['account']),
-            models.Index(fields=['phase', 'account']),
+            models.Index(fields=['phase1', 'phase2', 'phase3', 'account']),
         ]
 
 
 class Question(BaseModelMixin):
     '''質問'''
+    MESSAGE_TYPE_BUTTON = 0
+    MESSAGE_TYPE_CAROUSEL = 1
+    MESSAGE_TYPE_QUICK_REPLY = 2
+    MESSAGE_TYPES = (
+        (MESSAGE_TYPE_BUTTON, 'button'),
+        (MESSAGE_TYPE_CAROUSEL, 'carousel'),
+        (MESSAGE_TYPE_QUICK_REPLY, 'quick_reply'),
+    )
+
     question_id = models.UUIDField(default=uuid.uuid4,
                                    unique=True,
                                    editable=False)
     title = models.TextField()
     image = models.URLField(null=True, default=None, blank=True)
     account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, null=True, default=None)
+    message_type = models.IntegerField(choices=MESSAGE_TYPES, default=MESSAGE_TYPE_BUTTON)
+    note1 = models.CharField(max_length=12, null=True, default=None, blank=True)
 
     objects = managers.QuestionManager()
     all_objects = managers.QuestionManager(include_soft_deleted=True)
@@ -64,6 +79,7 @@ class Answer(BaseModelMixin):
     title = models.TextField()
     image = models.URLField(null=True, default=None, blank=True)
     account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, null=True, default=None)
+    note1 = models.CharField(max_length=12, null=True, default=None, blank=True)
 
     objects = managers.AnswerManager()
     all_objects = managers.AnswerManager(include_soft_deleted=True)
