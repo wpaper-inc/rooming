@@ -140,6 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 AUTH_MODEL = 'accounts.models.Member'
+BASICAUTH_USERS = {'mefilas-rmng': 'mizuno'}
 
 
 # Internationalization

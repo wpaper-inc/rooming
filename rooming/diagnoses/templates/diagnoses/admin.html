@@ -1,0 +1,118 @@
+{% extends 'diagnoses/base.html' %}
+
+{% block title %}ROOMING{%endblock%}
+
+{% block content %}
+<!-- 全体統計タイトル -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h5>全体統計</h5>
+</div>
+<!-- 統計値表示-->
+<div class="table-responsive">
+  <table class="table table-striped table-sm">
+    <thead>
+      <tr>
+        <th>統計項目</th>
+        <th>数値</th>
+        <th>概要</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>診断回数</td>
+        <td>{{ overview.diagnoses_count }}</td>
+        <td>期間内に診断された回数</td>
+      </tr>
+      <tr>
+        <td>診断者数</td>
+        <td>{{ overview.members_count }}</td>
+        <td>期間内の診断した人の数</td>
+      </tr>
+      <tr>
+        <td>診断率</td>
+        <td>{{ overview.members_per_friends }}%</td>
+        <td>期間内の友だち数合計から診断した人の率</td>
+      </tr>
+      <tr>
+        <td>診断結果到達回数(率)</td>
+        <td>{{ overview.products_count }} ({{ overview.products_per_diagnoses }}%)</td>
+        <td>診断を開始してから、診断結果まで到達した回数と率</td>
+      </tr>
+      <tr>
+        <td>詳細ページ誘導人数(率)</td>
+        <td>{{ overview.detail_count }} ({{ overview.detail_per_member }}%)</td>
+        <td>診断をした人の中から、詳細ページまで到達した人数と率</td>
+      </tr>
+      <tr>
+        <td>キャンペーン誘導人数(率)</td>
+        <td>{{ overview.campaign_count }} ({{ overview.campaign_per_member }}%)</td>
+        <td>診断をした人の中から、キャンペーンまで到達した人数と率</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 各設問ごとの回答状況タイトル -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h5>各設問ごとの回答状況</h5>
+</div>
+<!-- 各設問ごとに回答の統計値を表示 -->
+<div class="row">
+  {% for key, values in questions.items %}
+  <div class="col-md-4">
+    <p><b>{{ values.question.title }}</b></p>
+    <p>(回答数 {{ values.answers_count }}回)</p>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <thead>
+          <tr>
+            <th>回答タイトル</th>
+            <th>回数(率)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for answer in values.answers %}
+            <tr>
+              <td>{{ answer.answer.title }}</td>
+              <td>{{ answer.count }} ({{ answer.ratio }}%)</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- 診断結果表示 -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <h5>各診断結果毎の表示統計</h5>
+</div>
+<!-- 各設問ごとに回答の統計値を表示 -->
+<div class="table-responsive">
+  <div class="col-md-12">
+    <p>＊１ 診断結果で表示される商品毎に、「詳細はこちら」をクリックした回数をカウント<br />
+       ＊２ 診断結果で表示される商品毎に、「キャンペーンに参加」をクリックした回数をカウント</p>
+  </div>
+  <table class="table table-striped table-sm">
+    <thead>
+      <tr>
+        <th>商品</th>
+        <th>回数(率)</th>
+        <th>詳細クリック数(率)＊１</th>
+        <th>キャンペーンクリック数(率)＊２</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product, values in products.items %}
+        <tr>
+          <td>{{ product.title }}</td>
+          <td>{{ values.count }} ({{ values.ratio }}%)</td>
+          <td>{{ values.detail_count }} ({{ values.detail_ratio }}%)</td>
+          <td>{{ values.campaign_count }} ({{ values.campaign_ratio }}%)</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
